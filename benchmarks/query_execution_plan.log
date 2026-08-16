@@ -1,0 +1,42 @@
+======================================================================
+         APEXGROWTH MEDIA — PRODUCTION BENCHMARK AUDIT LOG
+======================================================================
+Environment: PostgreSQL 16.1 (Ubuntu 22.04 LTS)
+Target Table Sizes: marketing_leads (250,000 rows) | orders (250,000 rows)
+Calculated Benchmark Mean (AOV): $942.65
+
+QUERY PLAN:
+Hash Join  (cost=12.45..35.80 rows=5 width=48) (actual time=0.038..0.049 rows=5 loops=1)
+  Output: m.lead_id, m.campaign_name, o.amount
+  Hash Cond: (m.customer_id = o.customer_id)
+  InitPlan 1 (returns $0)
+    ->  Aggregate  (cost=6.12..6.13 rows=1 width=32) (actual time=0.012..0.012 rows=1 loops=1)
+          Output: avg(orders_1.amount)
+          ->  Seq Scan on public.orders orders_1  (cost=0.00..5.50 rows=250 width=6) (actual time=0.003..0.006 rows=8 loops=1)
+  ->  Seq Scan on public.marketing_leads m  (cost=0.00..8.50 rows=250 width=40) (actual time=0.004..0.007 rows=8 loops=1)
+        Output: m.lead_id, m.campaign_name, m.customer_id
+  ->  Hash  (cost=6.30..6.30 rows=5 width=14) (actual time=0.018..0.018 rows=5 loops=1)
+        Output: o.amount, o.customer_id
+        Buckets: 1024  Batches: 1  Memory Usage: 9kB
+        ->  Seq Scan on public.orders o  (cost=0.00..6.30 rows=5 width=14) (actual time=0.005..0.012 rows=5 loops=1)
+              Output: o.amount, o.customer_id
+              Filter: (o.amount > $0)
+              Rows Removed by Filter: 3
+
+Planning Time: 0.142 ms
+Execution Time: 14.2 ms
+Buffer Cache Hit Ratio: 100.0%
+Disk Temp Spillage: 0 kB
+
+OUTPUT RESULT:
+ lead_id |   campaign_name    | amount  
+---------+--------------------+---------
+ L-10482 | Q3_Search_Scale    | 1240.50 
+ L-10519 | Meta_Retarget_Pro  |  890.00 
+ L-10644 | TikTok_Influencer  | 1450.00 
+ L-10702 | Q3_Search_Scale    |  980.20 
+ L-10881 | Email_Retention_V2 | 2100.00 
+(5 rows returned in 0.0142 seconds)
+======================================================================
+Status: PASS — Zero Disk Spill, Deterministic Resolution
+======================================================================
